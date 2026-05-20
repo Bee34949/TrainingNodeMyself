@@ -16,16 +16,32 @@ const checkValidation = (req, res, next) => {
   next();
 };
 
-// READ all + pagination
+// READ all + search + filter + pagination
 router.get('/', async (req, res, next) => {
   try {
     const page  = Math.max(1, parseInt(req.query.page)  || 1);
     const limit = Math.min(100, parseInt(req.query.limit) || 10);
     const skip  = (page - 1) * limit;
 
+    // Build filter
+    const filter = {};
+    if (req.query.search) {
+      filter.$or = [
+        { name:  { $regex: req.query.search, $options: 'i' } },
+        { email: { $regex: req.query.search, $options: 'i' } },
+      ];
+    }
+    if (req.query.role) filter.role = req.query.role;
+    if (req.query.age)  filter.age  = parseInt(req.query.age);
+    if (req.query.minAge || req.query.maxAge) {
+      filter.age = {};
+      if (req.query.minAge) filter.age.$gte = parseInt(req.query.minAge);
+      if (req.query.maxAge) filter.age.$lte = parseInt(req.query.maxAge);
+    }
+
     const [users, total] = await Promise.all([
-      User.find().skip(skip).limit(limit),
-      User.countDocuments(),
+      User.find(filter).skip(skip).limit(limit),
+      User.countDocuments(filter),
     ]);
 
     res.json({

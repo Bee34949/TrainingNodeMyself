@@ -55,6 +55,11 @@ router.post('/', authMiddleware, validatePost, checkValidation, async (req, res,
       content: req.body.content,
       author: req.user.id,
     });
+
+    // แจ้ง notification ทุก client ที่ online
+    const io = req.app.get('io');
+    if (io) io.emit('notification', { type: 'new-post', message: `New post: ${post.title}`, postId: post._id });
+
     res.status(201).json(post);
   } catch (err) {
     next(err);
