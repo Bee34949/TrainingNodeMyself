@@ -7,6 +7,11 @@ const userSchema = new mongoose.Schema({
   age: { type: Number, min: [0, 'Age cannot be negative'], max: [120, 'Age is too large'] },
   avatar: { type: String, default: null },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  isVerified: { type: Boolean, default: false },
+  verifyToken: { type: String, select: false },
+  resetToken: { type: String, select: false },
+  resetTokenExpiry: { type: Date, select: false },
+  refreshToken: { type: String, select: false },
 }, {
   timestamps: true
 });
